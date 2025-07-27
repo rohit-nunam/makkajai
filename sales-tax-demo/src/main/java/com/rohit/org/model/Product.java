@@ -1,27 +1,24 @@
 package com.rohit.org.model;
 
+import com.rohit.org.model.Category;
+import com.rohit.org.service.CategoryService;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class Product {
     private final String name;
-    private final Category category;
     private final boolean isImported;
     private final BigDecimal unitPrice;
 
-    public Product(String name, Category category, boolean isImported, BigDecimal unitPrice) {
+    public Product(String name, boolean isImported, BigDecimal unitPrice) {
         this.name = name;
-        this.category = category;
         this.isImported = isImported;
         this.unitPrice = unitPrice;
     }
 
-
     public String getName() {
         return name;
-    }
-
-    public Category getCategory() {
-        return category;
     }
 
     public boolean isImported() {
@@ -32,35 +29,33 @@ public class Product {
         return unitPrice;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Product product = (Product) o;
-
-        if (isImported != product.isImported) return false;
-        if (name != null ? !name.equals(product.name) : product.name != null) return false;
-        if (category != product.category) return false;
-        return unitPrice != null ? unitPrice.equals(product.unitPrice) : product.unitPrice == null;
+    public Category getCategory() {
+        if (CategoryService.isBook(name)) return Category.BOOK;
+        if (CategoryService.isMedical(name)) return Category.MEDICAL;
+        if (CategoryService.isFood(name)) return Category.FOOD;
+        return Category.OTHERS;
     }
 
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (category != null ? category.hashCode() : 0);
-        result = 31 * result + (isImported ? 1 : 0);
-        result = 31 * result + (unitPrice != null ? unitPrice.hashCode() : 0);
-        return result;
+    public boolean isTaxExempted() {
+        Category cat = getCategory();
+        return cat == Category.BOOK || cat == Category.FOOD || cat == Category.MEDICAL;
     }
 
-    @Override
-    public String toString() {
-        return "Product{" +
-                "name='" + name + '\'' +
-                ", category=" + category +
-                ", isImported=" + isImported +
-                ", unitPrice=" + unitPrice +
-                '}';
+    public BigDecimal calculateTax() {
+        BigDecimal tax = BigDecimal.ZERO;
+
+        if (!isTaxExempted()) {
+            tax = tax.add(unitPrice.multiply(BigDecimal.valueOf(0.10)));
+        }
+
+        if (isImported) {
+            tax = tax.add(unitPrice.multiply(BigDecimal.valueOf(0.05)));
+        }
+
+        return roundTax(tax);
+    }
+
+    private BigDecimal roundTax(BigDecimal value) {
+        return value.divide(new BigDecimal("0.05"), 0, RoundingMode.UP).multiply(new BigDecimal("0.05"));
     }
 }

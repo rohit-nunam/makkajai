@@ -17,29 +17,20 @@ public class ReceiptPrinter {
         List<BasketItem> basketItems = basket.getBasketItems();
         String output = "";
 
-        for (var basketItem : basketItems) {
-            Product product = basketItem.getProduct();
-            String isImported = imported(product);
+        for (BasketItem item : basketItems) {
+            Product product = item.getProduct();
+            String importedText = product.isImported() ? "imported " : "";
+            BigDecimal itemTax = item.getTotalTax();
+            BigDecimal itemPriceWithTax = item.getTotalPriceWithTax();
 
-            // considering quantity 1 for all
-            BigDecimal totalPrice = basketItem.getPrice().add(basketItem.getTaxPrice());
-            totalSalesTax = totalSalesTax.add(basketItem.getTaxPrice());
-            totalAmount = totalAmount.add(totalPrice);
-            String line = basketItem.getQuantity() + " " + isImported + product.getName() + ": " + totalPrice;
-            line = line + '\n';
-            output = output + line;
+            totalSalesTax = totalSalesTax.add(itemTax);
+            totalAmount = totalAmount.add(itemPriceWithTax);
+
+            output += item.getQuantity() + " " + importedText + product.getName() + ": " + itemPriceWithTax + "\n";
         }
+
         output = output + generateSalesTaxAndTotalAmount(totalSalesTax, totalAmount);
         return output;
-    }
-
-    private String imported(Product product) {
-        String imported;
-        if (product.isImported())
-            imported = "imported ";
-        else
-            imported = "";
-        return imported;
     }
 
     public String generateSalesTaxAndTotalAmount(BigDecimal totalSalesTax, BigDecimal totalAmount) {

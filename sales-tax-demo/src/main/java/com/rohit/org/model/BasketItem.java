@@ -1,34 +1,33 @@
 package com.rohit.org.model;
 
+import com.rohit.org.model.Product;
 
 import java.math.BigDecimal;
 
 public class BasketItem {
     private final Product product;
     private final int quantity;
-    private final BigDecimal price;
-    private final BigDecimal tax;
 
-    public BasketItem(Product product, int quantity, BigDecimal price, BigDecimal tax) {
+    public BasketItem(Product product, int quantity) {
         this.product = product;
         this.quantity = quantity;
-        this.price = price;
-        this.tax = tax;
     }
 
-    public int getQuantity() {
-        return quantity;
+    public BigDecimal getTotalTax() {
+        return product.calculateTax().multiply(BigDecimal.valueOf(quantity));
     }
 
-    public BigDecimal getPrice() {
-        return price;
+    public BigDecimal getTotalPriceWithTax() {
+        return product.getUnitPrice()
+                .add(product.calculateTax())
+                .multiply(BigDecimal.valueOf(quantity));
     }
 
     public Product getProduct() {
         return product;
     }
 
-    public BigDecimal getTaxPrice() {
-        return tax;
+    public int getQuantity() {
+        return quantity;
     }
 }
